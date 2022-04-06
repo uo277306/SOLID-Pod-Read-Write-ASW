@@ -9,6 +9,6 @@ Al no proveer una plantilla directa para corroborar los cambios he seguido el tu
 Esto no refleja todas las pruebas realizadas ya que fueron hechas sin control de versiones en ese momento.
 
 Para ejecutar:
-1.- Clonar repositorio.
-2.- Ejecutar `npm install`
-3.- Ejecutar `npm start`
+  1.- Clonar repositorio.
+  2.- Ejecutar `npm install`
+  3.- Ejecutar `npm start`
