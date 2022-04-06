@@ -65,62 +65,86 @@ async function createList() {
 
 	// For simplicity and brevity, this tutorial hardcodes the SolidDataset URL.
 	// In practice, you should add a link to this resource in your profile that applications can follow.
-	const readingListUrl = `${podUrl}/getting-started/readingList/myList`;
+	const whereToSaveNameUrl = `${podUrl}/dede_es04/user/name`;
+	console.log("Esto es donde lo vamos a guardar " + whereToSaveNameUrl);
 
-	let titles = document.getElementById("titles").value.split("\n");
-
+	let nombreQueVamosAGuardar = document.getElementById("nombreQueVamosAGuardar").value;
+	console.log("Esto es lo que vamos a guardar " + nombreQueVamosAGuardar);
 	// Fetch or create a new reading list.
-	let myReadingList;
+	let myNameSet;
 
+	//Intenta leer los textos
 	try {
 		// Attempt to fetch the reading list in case it already exists.
-		myReadingList = await getSolidDataset(readingListUrl, { fetch: fetch });
-		// Clear the list to override the whole list
-		let titles = getThingAll(myReadingList);
-		titles.forEach((title) => {
-			myReadingList = removeThing(myReadingList, title);
+		myNameSet = await getSolidDataset(whereToSaveNameUrl, { fetch: fetch });
+
+		// Vacia los textos (leemos luego)
+		// Para todas las cosas en el dataset, quitalas
+		let cosasQueHayEnElSet = getThingAll(myNameSet);
+
+		cosasQueHayEnElSet.forEach((cosaDelSet) => {
+			//remove del myNameSet la cosaDelSet
+			console.log(
+				"Esto es el item del set que vamos a borrar ahora " + cosaDelSet.url,
+			);
+			myNameSet = removeThing(myNameSet, cosaDelSet);
 		});
 	} catch (error) {
 		if (typeof error.statusCode === "number" && error.statusCode === 404) {
-			// if not found, create a new SolidDataset (i.e., the reading list)
-			myReadingList = createSolidDataset();
+			// if not found, create a new SolidDataset
+			myNameSet = createSolidDataset();
+			console.log("Creado dataset")
 		} else {
 			console.error(error.message);
 		}
 	}
 
-	// Add titles to the Dataset
-	for (let i = 0; i < titles.length; i++) {
-		let title = createThing({ name: "title" + i });
-		title = addUrl(title, RDF.type, AS.Article);
-		title = addStringNoLocale(title, SCHEMA_INRUPT.name, titles[i]);
-		myReadingList = setThing(myReadingList, title);
-	}
+	// Añadir los nombre al Dataset
+	// Creamos el coso
+	let esteNombre = createThing({ name: "nombre" });
+	// Le añadimos la url de acesso con mas cosas
+	esteNombre = addUrl(esteNombre, RDF.type, AS.Article);
+	// Le añadimos nuestro texto
+	esteNombre = addStringNoLocale(
+		esteNombre,
+		SCHEMA_INRUPT.name,
+		nombreQueVamosAGuardar,
+	);
+	// Guardamos esteNombre en el set
+	myNameSet = setThing(myNameSet, esteNombre);
+
+		console.log("Thing que guardamos ", esteNombre.type, esteNombre.url)
 
 	try {
 		// Save the SolidDataset
 		let savedReadingList = await saveSolidDatasetAt(
-			readingListUrl,
-			myReadingList,
-			{ fetch: fetch },
+			whereToSaveNameUrl,
+			myNameSet,
+			{
+				fetch: fetch,
+			},
 		);
 
+		console.log("saved list ", savedReadingList);
 		labelCreateStatus.textContent = "Saved";
 
 		// Refetch the Reading List
-		savedReadingList = await getSolidDataset(readingListUrl, { fetch: fetch });
+		savedReadingList = await getSolidDataset(whereToSaveNameUrl, {
+			fetch: fetch,
+		});
 
-		let items = getThingAll(savedReadingList);
+		let cosasQueHayEnElSet = getThingAll(savedReadingList);
 
 		let listcontent = "";
-		for (let i = 0; i < items.length; i++) {
-			let item = getStringNoLocale(items[i], SCHEMA_INRUPT.name);
-			if (item !== null) {
-				listcontent += item + "\n";
+		cosasQueHayEnElSet.forEach((cosaDelSet) => {
+			let item = getStringNoLocale(cosaDelSet, SCHEMA_INRUPT.name);
+			if (item != null) {
+				listcontent += item + "\t";
+				console.log(item.text);
 			}
-		}
+		});
 
-		document.getElementById("savedtitles").value = listcontent;
+		document.getElementById("savednombre").value = listcontent;
 	} catch (error) {
 		console.log(error);
 		labelCreateStatus.textContent = "Error" + error;
